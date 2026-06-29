@@ -1,0 +1,32 @@
+# IntelliJ
+.idea/
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# Java / Maven
+target/
+build/
+bin/
+*.class
+
+# Environment
+.env
+.env.*
+
+# Secrets
+application-local.properties
+application-prod.properties
+secrets.properties
+credentials.json
+*.pem
+*.key
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

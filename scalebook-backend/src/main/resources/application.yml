@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/scalebook_db
+    username: postgres
+    password: Gauri@post6
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
