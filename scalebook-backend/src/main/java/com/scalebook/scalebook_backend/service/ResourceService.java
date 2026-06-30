@@ -13,15 +13,18 @@ public class ResourceService {
 
     private final ResourceRepository resourceRepository;
 
+    @Cacheable(value = "resources", key = "'all-active'")
     public List<Resource> getAllActiveResources() {
+        System.out.println("Hitting the database..."); // you'll only see this print on a cache MISS
         return resourceRepository.findAll()
                 .stream()
                 .filter(Resource::getIsActive)
                 .toList();
     }
 
-    public Resource getResourceById(Long id) {
-        return resourceRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Resource not found with id: " + id));
+    @CacheEvict(value = "resources", key = "'all-active'")
+    public Resource createResource(Resource resource) {
+        return resourceRepository.save(resource);
     }
+
 }

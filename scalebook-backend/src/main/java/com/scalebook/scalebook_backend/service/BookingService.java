@@ -24,6 +24,8 @@ public class BookingService {
     private final ResourceRepository resourceRepository;
     private final UserRepository userRepository;
     private final RedissonClient redissonClient;
+    private final NotificationService notificationService;
+    private final AuditService auditService;
 
     public Booking createBooking(Long userId, Long resourceId, LocalDateTime start, LocalDateTime end) {
 
@@ -78,6 +80,16 @@ public class BookingService {
         booking.setEndTime(end);
         booking.setStatus(BookingStatus.CONFIRMED);
 
-        return bookingRepository.save(booking);
+        Booking savedBooking = bookingRepository.save(booking);
+
+        notificationService.queueBookingConfirmation(
+                booking.getId(), user.getEmail(), resource.getName()
+        );
+
+        auditService.log(user.getEmail(), "BOOKING_CREATED", "Booking", booking.getId(),
+                "Resource: " + resource.getName() + ", Time: " + start + " to " + end);
+
+
+        return savedBooking;
     }
 }
