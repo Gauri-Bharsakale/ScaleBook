@@ -4,6 +4,8 @@ import com.scalebook.scalebook_backend.entity.Resource;
 import com.scalebook.scalebook_backend.exception.ResourceNotFoundException;
 import com.scalebook.scalebook_backend.repository.ResourceRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -27,4 +29,8 @@ public class ResourceService {
         return resourceRepository.save(resource);
     }
 
+    public Resource getResourceById(Long id) {
+        return resourceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Resource not found"));
+    }
 }

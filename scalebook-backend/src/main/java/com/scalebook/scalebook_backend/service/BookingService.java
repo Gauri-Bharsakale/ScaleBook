@@ -92,4 +92,27 @@ public class BookingService {
 
         return savedBooking;
     }
+
+    public Booking cancelBooking(
+            Long bookingId,
+            Long userId
+    ) {
+
+        Booking booking = bookingRepository
+                .findById(bookingId)
+                .orElseThrow(() ->
+                        new RuntimeException("Booking not found"));
+
+        if (!booking.getUser().getId().equals(userId)) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        booking.setStatus(BookingStatus.CANCELLED);
+
+        return bookingRepository.save(booking);
+    }
+
+    public List<Booking> getBookingsByUser(Long userId) {
+        return bookingRepository.findByUserId(userId);
+    }
 }

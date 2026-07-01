@@ -1,11 +1,26 @@
 package com.scalebook.scalebook_backend.config;
 
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 @Configuration
 @EnableCaching
 public class CacheConfig {
-    // Spring Boot auto-configures Redis as the cache backend
-    // because we already have spring-boot-starter-data-redis on the classpath
+
+    @Bean
+    public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        return RedisCacheManager.builder(connectionFactory)
+                .initialCacheNames(
+                        java.util.Set.of("resources")
+                )
+                .cacheDefaults(
+                        RedisCacheConfiguration.defaultCacheConfig()
+                )
+                .build();
+    }
 }

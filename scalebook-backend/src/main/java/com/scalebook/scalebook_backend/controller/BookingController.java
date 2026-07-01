@@ -2,11 +2,14 @@ package com.scalebook.scalebook_backend.controller;
 
 import com.scalebook.scalebook_backend.dto.request.BookingRequest;
 import com.scalebook.scalebook_backend.entity.Booking;
+import com.scalebook.scalebook_backend.entity.User;
+import com.scalebook.scalebook_backend.repository.UserRepository;
 import com.scalebook.scalebook_backend.service.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/bookings")
@@ -27,8 +30,42 @@ public class BookingController {
         );
     }
 
+    @Autowired
+    private UserRepository userRepository;
+
     private Long resolveUserIdFromAuth(Authentication authentication) {
-        // placeholder - real implementation calls UserRepository.findByEmail(authentication.getName())
-        throw new UnsupportedOperationException("Implement using UserRepository lookup by email");
+
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException(
+                        "User not found: " + email
+                ));
+
+        return user.getId();
+    }
+
+    @GetMapping("/my")
+    public java.util.List<Booking> getMyBookings(
+            Authentication authentication
+    ) {
+
+        Long userId = resolveUserIdFromAuth(authentication);
+
+        return bookingService.getBookingsByUser(userId);
+    }
+
+    @PatchMapping("/{bookingId}/cancel")
+    public Booking cancelBooking(
+            @PathVariable Long bookingId,
+            Authentication authentication
+    ) {
+
+        Long userId = resolveUserIdFromAuth(authentication);
+
+        return bookingService.cancelBooking(
+                bookingId,
+                userId
+        );
     }
 }
