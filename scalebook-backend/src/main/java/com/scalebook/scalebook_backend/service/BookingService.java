@@ -83,11 +83,18 @@ public class BookingService {
         Booking savedBooking = bookingRepository.save(booking);
 
         notificationService.queueBookingConfirmation(
-                booking.getId(), user.getEmail(), resource.getName()
+                savedBooking.getId(),
+                user.getEmail(),
+                resource.getName()
         );
 
-        auditService.log(user.getEmail(), "BOOKING_CREATED", "Booking", booking.getId(),
-                "Resource: " + resource.getName() + ", Time: " + start + " to " + end);
+        auditService.log(
+                user.getEmail(),
+                "BOOKING_CREATED",
+                "Booking",
+                savedBooking.getId(),
+                "Resource: " + resource.getName() + ", Time: " + start + " to " + end
+        );
 
 
         return savedBooking;

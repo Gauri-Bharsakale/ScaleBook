@@ -35,12 +35,15 @@ public class BookingController {
 
     private Long resolveUserIdFromAuth(Authentication authentication) {
 
+        if (authentication == null) {
+            throw new RuntimeException("Unauthenticated");
+        }
+
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException(
-                        "User not found: " + email
-                ));
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
 
         return user.getId();
     }
