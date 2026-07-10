@@ -22,4 +22,9 @@ public class ResourceController {
     public Resource getResource(@PathVariable Long id) {
         return resourceService.getResourceById(id);
     }
+
+    @PostMapping
+    public Resource createResource(@RequestBody Resource resource) {
+        return resourceService.createResource(resource);
+    }
 }

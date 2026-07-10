@@ -1,0 +1,7 @@
+# scalebook-frontend/.dockerignore
+
+node_modules/
+dist/
+.git/
+*.md
+.env.local

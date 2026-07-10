@@ -47,20 +47,6 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter,
                         UsernamePasswordAuthenticationFilter.class);
 
-//        http
-//                .cors(cors -> {})
-//                .csrf(csrf -> csrf.disable())
-//                .sessionManagement(sm ->
-//                        sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//                .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-//                        .requestMatchers("/api/auth/**").permitAll()
-//                        .anyRequest().authenticated()
-//                )
-//                .addFilterBefore(
-//                        jwtAuthFilter,
-//                        UsernamePasswordAuthenticationFilter.class
-//                );
 
         return http.build();
     }
