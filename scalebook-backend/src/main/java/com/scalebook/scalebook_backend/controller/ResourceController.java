@@ -22,4 +22,21 @@ public class ResourceController {
     public Resource getResource(@PathVariable Long id) {
         return resourceService.getResourceById(id);
     }
+
+    @PostMapping
+    public Resource createResource(@RequestBody Resource resource) {
+        return resourceService.createResource(resource);
+    }
+
+    @PutMapping("/{id}")
+    public Resource updateResource(@PathVariable Long id,
+                                   @RequestBody Resource resource) {
+        return resourceService.updateResource(id, resource);
+    }
+
+    @DeleteMapping("/{id}")
+    public String deleteResource(@PathVariable Long id) {
+        resourceService.deleteResource(id);
+        return "Resource deleted successfully";
+    }
 }

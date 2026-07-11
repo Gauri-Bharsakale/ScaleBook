@@ -28,6 +28,11 @@ public class AuthService {
             throw new IllegalStateException("Email already registered");
         }
 
+        System.out.println("===== ALL ROLES =====");
+        roleRepository.findAll().forEach(role ->
+                System.out.println(role.getId() + " -> [" + role.getName() + "]"));
+        System.out.println("=====================");
+
         Role defaultRole = roleRepository.findByName("USER")
                 .orElseThrow(() -> new IllegalStateException("Default role not seeded in DB"));
 

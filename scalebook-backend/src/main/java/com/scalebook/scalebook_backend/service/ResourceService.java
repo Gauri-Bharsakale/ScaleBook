@@ -33,4 +33,28 @@ public class ResourceService {
         return resourceRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Resource not found"));
     }
+
+    public Resource updateResource(Long id, Resource updatedResource) {
+
+        Resource existing = resourceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Resource not found"));
+
+        existing.setName(updatedResource.getName());
+        existing.setDescription(updatedResource.getDescription());
+        existing.setCapacity(updatedResource.getCapacity());
+        existing.setIsActive(updatedResource.getIsActive());
+
+        return resourceRepository.save(existing);
+    }
+
+    public void deleteResource(Long id) {
+
+        Resource resource = resourceRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Resource not found"));
+
+        // Soft delete
+        resource.setIsActive(false);
+
+        resourceRepository.save(resource);
+    }
 }

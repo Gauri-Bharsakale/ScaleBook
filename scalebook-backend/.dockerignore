@@ -1,0 +1,7 @@
+# scalebook-backend/.dockerignore
+
+target/
+*.iml
+.idea/
+.git/
+*.md

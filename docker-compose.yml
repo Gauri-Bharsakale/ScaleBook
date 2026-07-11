@@ -1,0 +1,130 @@
+# docker-compose.yml (in the root folder, not inside backend or frontend)
+
+version: '3.9'
+
+# ─────────────────────────────────────────────
+# Named volumes — data that persists across container restarts
+# Without this, postgres data is lost every time you restart
+# ─────────────────────────────────────────────
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+
+# ─────────────────────────────────────────────
+# Custom network — all containers join this
+# They can find each other by service name
+# ─────────────────────────────────────────────
+networks:
+  scalebook_network:
+    driver: bridge
+
+services:
+
+  # ── PostgreSQL ────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine      # alpine = smaller image
+    container_name: scalebook_postgres
+    environment:
+      POSTGRES_DB: scalebook_db
+      POSTGRES_USER: scalebook_user
+      POSTGRES_PASSWORD: scalebook_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # persist data here
+    ports:
+      - "5433:5432"               # expose to host so pgAdmin can connect
+    networks:
+      - scalebook_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scalebook_user -d scalebook_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      # WHY healthcheck: the backend must not start until postgres is actually
+      # ready to accept connections, not just "the container started"
+
+  # ── Redis ─────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: scalebook_redis
+    command: redis-server --appendonly yes   # enable persistence (AOF)
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - scalebook_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── RabbitMQ ──────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    # 'management' tag includes the admin web UI at port 15672
+    container_name: scalebook_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: scalebook_user
+      RABBITMQ_DEFAULT_PASS: scalebook_pass
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"       # AMQP protocol (app connections)
+      - "15672:15672"     # Management UI (browser)
+    networks:
+      - scalebook_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # ── Spring Boot Backend ───────────────────────────────
+  backend:
+    build:
+      context: ./scalebook-backend    # folder containing the Dockerfile
+      dockerfile: Dockerfile
+    container_name: scalebook_backend
+    environment:
+      # These override the defaults in application.yml
+      # Hostnames use service names, not localhost
+      DB_URL: jdbc:postgresql://postgres:5432/scalebook_db
+      DB_USERNAME: scalebook_user
+      DB_PASSWORD: scalebook_pass
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: scalebook_user
+      RABBITMQ_PASSWORD: scalebook_pass
+      JWT_SECRET: "super-secret-key-change-this-in-production-minimum-32-chars"
+      DDL_AUTO: update
+      SHOW_SQL: "false"
+    ports:
+      - "8080:8080"
+    networks:
+      - scalebook_network
+    depends_on:
+      postgres:
+        condition: service_healthy    # wait for postgres healthcheck to pass
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure               # restart if the app crashes on startup
+
+  # ── React Frontend (Nginx) ────────────────────────────
+  frontend:
+    build:
+      context: ./scalebook-frontend
+      dockerfile: Dockerfile
+    container_name: scalebook_frontend
+    ports:
+      - "80:80"                       # browse to http://localhost
+    networks:
+      - scalebook_network
+    depends_on:
+      - backend                       # backend must be up before frontend starts
+    restart: on-failure
